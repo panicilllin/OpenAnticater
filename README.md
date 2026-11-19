@@ -1,13 +1,36 @@
 # OpenAnticater
 
+[![CI](https://github.com/panicilllin/OpenAnticater/actions/workflows/ci.yml/badge.svg)](https://github.com/panicilllin/OpenAnticater/actions/workflows/ci.yml)
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+![macOS 26+ · Apple Silicon](https://img.shields.io/badge/macOS-26%2B%20%C2%B7%20Apple%20Silicon-lightgrey?logo=apple)
+![Swift 6.2+](https://img.shields.io/badge/Swift-6.2%2B-F05138?logo=swift&logoColor=white)
+
 [简体中文](README.zh-CN.md)
 
 An open-source, native macOS app for configuring the **ANTICATER MINI** desktop volume knob — a replacement
 for the vendor's Intel-only software that runs natively on Apple Silicon.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/app-dark.png">
+  <img alt="OpenAnticater main window" src="docs/images/app-light.png">
+</picture>
+
 > **Unofficial project.** OpenAnticater is a community project and is not affiliated with, endorsed by, or
 > supported by the maker of ANTICATER products. "ANTICATER" and other names are trademarks of their respective
 > owners and are used here only to describe compatibility.
+
+## Quick start
+
+1. **Install.** Download the latest `OpenAnticater-*-arm64.zip` from
+   [Releases](https://github.com/panicilllin/OpenAnticater/releases/latest), unzip it and move
+   **OpenAnticater** to **Applications**. The build is not notarized by Apple, so the first time you open it:
+   click **Done** in the warning, then go to **System Settings → Privacy & Security** and click
+   **Open Anyway**. (Or [build it yourself](#build-from-source).)
+2. **Connect the knob with a USB cable.** The app reads the knob's current settings automatically.
+   Bluetooth and the 2.4 GHz receiver only send key presses; they can't change settings.
+3. **Change an action.** Pick an action in the sidebar (turn left, press, turn right, hold + turn), choose
+   Keys, Media, Mouse or Text, and type the shortcut to record it.
+4. **Click Apply** (⌘S). The app writes the settings and reads them back to verify.
 
 ## Features
 
@@ -22,9 +45,6 @@ for the vendor's Intel-only software that runs natively on Apple Silicon.
 - Optional menu bar menu, open at login
 - Light / dark / system appearance; English and Simplified Chinese, switchable in the app without relaunching
 
-The knob must be connected with a **USB cable** to change its settings. Over Bluetooth or the 2.4 GHz receiver it
-only sends key presses.
-
 ## Supported devices
 
 | Device | Status |
@@ -32,15 +52,15 @@ only sends key presses.
 | ANTICATER MINI single knob, USB `514C:8850`, firmware version 0 | Tested |
 | Other models the vendor app lists (`1189` / `514C` with PIDs `8840 8842 8830–8833 8851`) | Not supported yet |
 
-Reports from other models are welcome — see [docs/PROTOCOL.md](docs/PROTOCOL.md) for what is known about the
-protocol. `swift run knobctl info` and `swift run knobctl read` are read-only and safe to run.
+Reports from other models are welcome — please open an issue with the model name, how it is connected, and the
+output of `swift run knobctl list`. It only reads the system's device list, never talks to the knob, and doesn't
+print serial numbers. On the tested model, `knobctl info` and `knobctl read` are read-only too. Don't run the
+`write-*` / `led*` commands on other models. See [docs/PROTOCOL.md](docs/PROTOCOL.md) for what is known about
+the protocol.
 
-## Requirements
+## Build from source
 
-- macOS 26 or later, Apple Silicon
-- Xcode 26 or later to build
-
-## Build and run
+Requires macOS 26 or later on Apple Silicon, and Xcode 26 or later.
 
 ```bash
 ./scripts/build-app.sh          # builds build/release/OpenAnticater.app
@@ -51,13 +71,15 @@ Other useful commands:
 
 ```bash
 swift test                      # protocol encoding/decoding tests
+swift run knobctl list          # list ANTICATER USB / Bluetooth interfaces (read-only, no device I/O)
 swift run knobctl status        # Bluetooth / receiver status and battery level (read-only)
 swift run knobctl read          # print the knob's current settings (read-only)
 ```
 
-The build script signs the app ad hoc, which is fine for building and running it on your own Mac. If you copy a
-build to another Mac, Gatekeeper will block it; build it there instead. Distributing builds that open with a double
-click requires signing and notarizing with an Apple Developer ID.
+The build script signs the app ad hoc, which is fine for running it on your own Mac. Release builds are made the
+same way by [GitHub Actions](.github/workflows/release.yml) when a `vX.Y.Z` tag is pushed, with a build provenance
+attestation (`gh attestation verify <zip> -R panicilllin/OpenAnticater`). They are not notarized, which is why
+macOS asks you to confirm them once.
 
 ## How it works
 
