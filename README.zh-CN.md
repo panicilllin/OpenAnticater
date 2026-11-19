@@ -20,7 +20,7 @@
 ## 快速上手
 
 1. **安装。** 从 [Releases](https://github.com/panicilllin/OpenAnticater/releases/latest) 下载最新的
-   `OpenAnticater-*-arm64.zip`，解压后把 **OpenAnticater** 拖进「应用程序」。这个版本未经 Apple 公证，第一次打开时：
+   `OpenAnticater-*-arm64.dmg`，打开后把 **OpenAnticater** 拖到「Applications」（应用程序）上。这个版本未经 Apple 公证，第一次打开时：
    在提示框里点「完成」，然后到「系统设置 → 隐私与安全性」点「仍要打开」。（也可以[自己编译](#从源码编译)。）
 2. **用 USB 数据线连接旋钮。** App 会自动读取旋钮当前的配置。蓝牙和 2.4G 接收器只传输按键，不能改键。
 3. **修改动作。** 在侧栏选一个动作（左转、按下、右转、按住左转 / 右转），选择按键、多媒体、鼠标或文本，直接按键盘录制快捷键。
@@ -54,6 +54,7 @@
 
 ```bash
 ./scripts/build-app.sh          # 生成 build/release/OpenAnticater.app
+./scripts/make-dmg.sh           # 可选：打包成 dist/OpenAnticater-<版本>-arm64.dmg
 open build/release/OpenAnticater.app
 ```
 
@@ -68,7 +69,7 @@ swift run knobctl read          # 查看旋钮当前配置（只读）
 
 打包脚本使用本地签名（ad-hoc），在自己的 Mac 上运行没有问题。Releases 里的版本由
 [GitHub Actions](.github/workflows/release.yml) 在推送 `vX.Y.Z` 标签时用同样的方式打包，并附带构建来源证明
-（`gh attestation verify <zip> -R panicilllin/OpenAnticater`）。它们没有经过 Apple 公证，所以第一次打开时需要手动确认。
+（`gh attestation verify <dmg> -R panicilllin/OpenAnticater`）。它们没有经过 Apple 公证，所以第一次打开时需要手动确认。
 
 ## 原理
 

@@ -21,9 +21,9 @@ for the vendor's Intel-only software that runs natively on Apple Silicon.
 
 ## Quick start
 
-1. **Install.** Download the latest `OpenAnticater-*-arm64.zip` from
-   [Releases](https://github.com/panicilllin/OpenAnticater/releases/latest), unzip it and move
-   **OpenAnticater** to **Applications**. The build is not notarized by Apple, so the first time you open it:
+1. **Install.** Download the latest `OpenAnticater-*-arm64.dmg` from
+   [Releases](https://github.com/panicilllin/OpenAnticater/releases/latest), open it and drag
+   **OpenAnticater** onto **Applications**. The build is not notarized by Apple, so the first time you open it:
    click **Done** in the warning, then go to **System Settings → Privacy & Security** and click
    **Open Anyway**. (Or [build it yourself](#build-from-source).)
 2. **Connect the knob with a USB cable.** The app reads the knob's current settings automatically.
@@ -64,6 +64,7 @@ Requires macOS 26 or later on Apple Silicon, and Xcode 26 or later.
 
 ```bash
 ./scripts/build-app.sh          # builds build/release/OpenAnticater.app
+./scripts/make-dmg.sh           # optional: packs it into dist/OpenAnticater-<version>-arm64.dmg
 open build/release/OpenAnticater.app
 ```
 
@@ -78,7 +79,7 @@ swift run knobctl read          # print the knob's current settings (read-only)
 
 The build script signs the app ad hoc, which is fine for running it on your own Mac. Release builds are made the
 same way by [GitHub Actions](.github/workflows/release.yml) when a `vX.Y.Z` tag is pushed, with a build provenance
-attestation (`gh attestation verify <zip> -R panicilllin/OpenAnticater`). They are not notarized, which is why
+attestation (`gh attestation verify <dmg> -R panicilllin/OpenAnticater`). They are not notarized, which is why
 macOS asks you to confirm them once.
 
 ## How it works

@@ -10,3 +10,7 @@ build/
 *.zip
 *.pkg
 *.rar
+
+# 发布包 / release packages
+dist/
+*.dmg

@@ -41,17 +41,14 @@ jobs:
         run: |
           ./scripts/build-app.sh
           codesign --verify --deep --strict build/release/OpenAnticater.app
-          mkdir dist
-          zip="OpenAnticater-${VERSION}-arm64.zip"
-          # ditto keeps the code signature and extended attributes intact.
-          ditto -c -k --keepParent build/release/OpenAnticater.app "dist/$zip"
-          (cd dist && shasum -a 256 "$zip" > "$zip.sha256")
+          dmg=$(./scripts/make-dmg.sh dist)
+          (cd dist && shasum -a 256 "$(basename "$dmg")" > "$(basename "$dmg").sha256")
           cat dist/*.sha256
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: dist/*.zip
+          subject-path: dist/*.dmg
 
       - name: Create draft release
         env:
