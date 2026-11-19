@@ -20,6 +20,60 @@ public enum KnobPresence {
         hidDeviceExists(matching: [kIOHIDVendorIDKey: receiverVendorID, kIOHIDProductIDKey: receiverProductID])
     }
 
+    /// 原厂 App 认的 USB 厂商 ID。
+    public static let vendorIDs = [0x1189, 0x514C]
+
+    /// 系统里一个 HID 接口的公开属性。不含序列号。
+    public struct HIDInterface: Sendable, Equatable {
+        public var vendorID: Int
+        public var productID: Int
+        public var product: String?
+        public var transport: String?
+        public var usagePage: Int
+        public var usage: Int
+        public var maxInputReportSize: Int
+        public var maxOutputReportSize: Int
+        public var maxFeatureReportSize: Int
+
+        /// 一行文字，供 `knobctl list` 输出和设备反馈使用。
+        public var summary: String {
+            String(format: "%04X:%04X  usage %04X:%04X  in %d  out %d  feature %d  ",
+                   vendorID, productID, usagePage, usage,
+                   maxInputReportSize, maxOutputReportSize, maxFeatureReportSize)
+                + "\(transport ?? "?")  \"\(product ?? "")\""
+        }
+    }
+
+    /// 列出可能是 ANTICATER 设备的 HID 接口：厂商 ID 在 `vendorIDs` 里，或产品名含 "ANTICATER"。
+    ///
+    /// 只读 IORegistry 里的属性，不打开设备，也不发送任何报文。
+    public static func candidateInterfaces() -> [HIDInterface] {
+        guard let dict = IOServiceMatching(kIOHIDDeviceKey) else { return [] }
+        var iterator: io_iterator_t = 0
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, dict, &iterator) == KERN_SUCCESS else { return [] }
+        defer { IOObjectRelease(iterator) }
+        var result: [HIDInterface] = []
+        while case let service = IOIteratorNext(iterator), service != 0 {
+            defer { IOObjectRelease(service) }
+            func value(_ key: String) -> Any? {
+                IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue()
+            }
+            func int(_ key: String) -> Int { (value(key) as? NSNumber)?.intValue ?? 0 }
+            let product = value(kIOHIDProductKey) as? String
+            let vendor = int(kIOHIDVendorIDKey)
+            guard vendorIDs.contains(vendor) || product?.uppercased().contains("ANTICATER") == true else { continue }
+            result.append(HIDInterface(
+                vendorID: vendor, productID: int(kIOHIDProductIDKey), product: product,
+                transport: value(kIOHIDTransportKey) as? String,
+                usagePage: int(kIOHIDPrimaryUsagePageKey), usage: int(kIOHIDPrimaryUsageKey),
+                maxInputReportSize: int(kIOHIDMaxInputReportSizeKey),
+                maxOutputReportSize: int(kIOHIDMaxOutputReportSizeKey),
+                maxFeatureReportSize: int(kIOHIDMaxFeatureReportSizeKey)))
+        }
+        return result.sorted { ($0.vendorID, $0.productID, $0.usagePage, $0.usage)
+            < ($1.vendorID, $1.productID, $1.usagePage, $1.usage) }
+    }
+
     private static func hidDeviceExists(matching properties: [String: Any]) -> Bool {
         guard let dict = IOServiceMatching(kIOHIDDeviceKey) as NSMutableDictionary? else { return false }
         dict[kIOPropertyMatchKey] = properties

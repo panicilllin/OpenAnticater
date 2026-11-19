@@ -4,6 +4,7 @@ import KnobKit
 // 命令行调试工具 / Command-line debugging tool
 //
 // 只读 / read-only:
+//   knobctl list                           列出疑似 ANTICATER 的 HID 接口（不打开设备、不发报文）
 //   knobctl status                         蓝牙、接收器连接状态和电量
 //   knobctl info                           查询键数、旋钮数、版本
 //   knobctl read                           读取 3 层的 5 个旋钮动作
@@ -23,6 +24,17 @@ func run() async -> Int32 {
         print("蓝牙：\(KnobPresence.isBluetoothConnected() ? "已连接" : "未连接")")
         print("2.4G 接收器：\(KnobPresence.isReceiverConnected() ? "已插入" : "未插入")")
         print("电量：\(KnobBattery.level().map { "\($0)%" } ?? "读不到")")
+        return 0
+    }
+
+    if command == "list" {
+        // 只读 IORegistry，任何型号都能用；输出不含序列号，可以直接贴到 issue 里。
+        let interfaces = KnobPresence.candidateInterfaces()
+        if interfaces.isEmpty {
+            print("No ANTICATER HID interfaces found. / 没有找到 ANTICATER 设备。")
+            return 1
+        }
+        for i in interfaces { print(i.summary) }
         return 0
     }
 
