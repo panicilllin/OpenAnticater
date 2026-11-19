@@ -1,0 +1,12 @@
+# 编译产物 / build outputs
+.build/
+build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# 原厂软件不要提交 / never commit the vendor's software
+*.zip
+*.pkg
+*.rar
